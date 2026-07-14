@@ -3,81 +3,473 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>행운 추첨기</title>
+  <title>로또 추첨기</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono&family=Gowun+Dodum&display=swap');
 
-    :root { --ink:#15151a; --paper:#fbf7ed; --orange:#f04e23; --yellow:#f7c948; --blue:#3155c6; }
-    * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; display:grid; place-items:center; color:var(--ink); background:radial-gradient(circle at 18% 20%,#ffe5ad 0 4%,transparent 4.2%),radial-gradient(circle at 80% 75%,#c7d9ff 0 6%,transparent 6.2%),var(--paper); font-family:'Gowun Dodum',sans-serif; }
-    main { width:min(920px,calc(100% - 32px)); padding:42px 0; }
-    .ticket { overflow:hidden; position:relative; border:3px solid var(--ink); box-shadow:9px 9px 0 var(--ink); background:#fffdf8; }
-    .top { display:flex; justify-content:space-between; align-items:flex-start; padding:28px 32px 20px; border-bottom:3px dashed var(--ink); }
-    .eyebrow { margin:0 0 8px; color:var(--orange); font:700 13px 'DM Mono',monospace; letter-spacing:.12em; }
-    h1 { margin:0; font-size:clamp(31px,6vw,58px); line-height:1; letter-spacing:-.09em; }
-    .serial { padding:8px 10px; border:2px solid var(--ink); font:12px 'DM Mono',monospace; transform:rotate(3deg); }
-    .content { padding:28px 32px 32px; }
-    .intro { margin:0 0 25px; font-size:17px; }
-    .balls { display:flex; flex-wrap:wrap; gap:14px; min-height:74px; align-items:center; }
-    .ball { width:62px; height:62px; display:grid; place-items:center; border:2px solid var(--ink); border-radius:50%; font:700 24px 'DM Mono',monospace; box-shadow:3px 3px 0 var(--ink); opacity:0; transform:translateY(-14px) rotate(-12deg); transition:opacity .25s,transform .25s; }
-    .ball.show { opacity:1; transform:translateY(0) rotate(0); }
-    .c1 { background:#f6d34c; } .c2 { background:#7cc6e7; } .c3 { background:#ef7e62; } .c4 { background:#a998db; } .c5 { background:#87c875; }
-    .divider { margin:0 2px; font:30px 'DM Mono',monospace; }
-    .bonus-label { font-size:11px; font-weight:bold; text-align:center; margin-top:3px; }
-    button { cursor:pointer; margin-top:30px; padding:15px 22px; border:3px solid var(--ink); background:var(--orange); color:white; box-shadow:5px 5px 0 var(--ink); font:700 17px 'Gowun Dodum',sans-serif; transition:transform .1s,box-shadow .1s; }
-    button:hover { background:#d93d17; } button:active { transform:translate(4px,4px); box-shadow:1px 1px 0 var(--ink); }
-    .history { margin-top:26px; padding-top:21px; border-top:2px solid var(--ink); }
-    .history h2 { font-size:15px; margin:0 0 10px; }
-    #history-list { display:flex; flex-wrap:wrap; gap:8px; }
-    .history-item { padding:7px 9px; border:1px solid var(--ink); background:#fff; font:12px 'DM Mono',monospace; }
-    .note { margin:18px 0 0; color:#595954; font-size:12px; }
-    @media (max-width:560px) { .top,.content { padding-left:20px; padding-right:20px; } .serial{display:none}.ball{width:48px;height:48px;font-size:19px}.balls{gap:10px}.divider{font-size:23px} }
+    :root {
+      --ink: #17171d;
+      --paper: #fff7ea;
+      --paper-2: #fffdf7;
+      --accent: #ff6b35;
+      --accent-dark: #e75224;
+      --shadow: rgba(23, 23, 29, 0.18);
+      --muted: #66626f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-family: 'Gowun Dodum', sans-serif;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255, 176, 77, 0.28) 0 9%, transparent 9.2%),
+        radial-gradient(circle at 82% 14%, rgba(91, 131, 255, 0.18) 0 8%, transparent 8.2%),
+        radial-gradient(circle at 76% 78%, rgba(255, 107, 53, 0.18) 0 10%, transparent 10.2%),
+        linear-gradient(180deg, #fff9ef 0%, #fff1dc 100%);
+    }
+
+    main {
+      width: min(960px, calc(100% - 32px));
+      padding: 28px 0;
+    }
+
+    .ticket {
+      overflow: hidden;
+      position: relative;
+      border: 3px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 12px 12px 0 var(--shadow);
+    }
+
+    .ticket::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0 18px, rgba(23, 23, 29, 0.03) 18px 19px, transparent 19px 100%),
+        linear-gradient(transparent 0 18px, rgba(23, 23, 29, 0.03) 18px 19px, transparent 19px 100%);
+      background-size: 19px 19px;
+      pointer-events: none;
+      opacity: 0.42;
+    }
+
+    .top,
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 28px 30px 22px;
+      border-bottom: 3px dashed var(--ink);
+      background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 255, 255, 0));
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font: 700 12px 'DM Mono', monospace;
+      letter-spacing: .14em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 56px);
+      line-height: 1;
+      letter-spacing: -0.08em;
+    }
+
+    .serial {
+      flex: none;
+      padding: 8px 10px;
+      border: 2px solid var(--ink);
+      background: #fff;
+      font: 12px 'DM Mono', monospace;
+      transform: rotate(3deg);
+      box-shadow: 3px 3px 0 var(--ink);
+      white-space: nowrap;
+    }
+
+    .content {
+      display: grid;
+      gap: 22px;
+      padding: 28px 30px 30px;
+    }
+
+    .intro {
+      margin: 0;
+      font-size: 17px;
+      color: #2c2933;
+    }
+
+    .status {
+      margin: -8px 0 0;
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status[data-state="error"] {
+      color: #b3261e;
+    }
+
+    .balls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      min-height: 78px;
+    }
+
+    .ball,
+    .divider {
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+
+    .ball {
+      width: 62px;
+      height: 62px;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      box-shadow: 4px 4px 0 var(--ink);
+      font: 700 24px 'DM Mono', monospace;
+      opacity: 0;
+      transform: translateY(-10px) rotate(-10deg) scale(.96);
+      transition: opacity .24s ease, transform .24s ease;
+    }
+
+    .ball.show {
+      opacity: 1;
+      transform: translateY(0) rotate(0) scale(1);
+    }
+
+    .ball.c1 { background: #ffd84f; }
+    .ball.c2 { background: #79c8f2; }
+    .ball.c3 { background: #ff9c76; }
+    .ball.c4 { background: #b2a2f1; }
+    .ball.c5 { background: #92d98a; }
+
+    .divider {
+      margin: 0 -2px;
+      font: 700 28px 'DM Mono', monospace;
+      color: var(--ink);
+      transform: translateY(-2px);
+    }
+
+    .label {
+      margin-top: -8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: .04em;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    button {
+      cursor: pointer;
+      padding: 15px 22px;
+      border: 3px solid var(--ink);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 5px 5px 0 var(--ink);
+      font: 700 17px 'Gowun Dodum', sans-serif;
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+
+    button:hover { background: var(--accent-dark); }
+    button:active {
+      transform: translate(4px, 4px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+    button:disabled {
+      cursor: wait;
+      opacity: .72;
+      transform: none;
+      box-shadow: 5px 5px 0 var(--ink);
+    }
+
+    .panel {
+      padding-top: 18px;
+      border-top: 2px solid rgba(23, 23, 29, 0.16);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .history {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .history-item {
+      padding: 7px 10px;
+      border: 1px solid var(--ink);
+      background: #fff;
+      font: 12px 'DM Mono', monospace;
+      box-shadow: 2px 2px 0 rgba(23, 23, 29, 0.12);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .note {
+      margin: 0;
+      color: #5c5864;
+      font-size: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .top,
+      .content {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .serial {
+        display: none;
+      }
+
+      .ball {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+      }
+
+      .balls {
+        gap: 10px;
+      }
+
+      .divider {
+        font-size: 24px;
+      }
+    }
   </style>
 </head>
 <body>
   <main>
     <section class="ticket" aria-labelledby="title">
       <header class="top">
-        <div><p class="eyebrow">LUCKY DRAW / 6 OUT OF 45</p><h1 id="title">오늘의 행운 번호</h1></div>
-        <span class="serial" id="serial">DRAW #000001</span>
+        <div>
+          <p class="eyebrow">LOTTO DRAW / 6 OUT OF 45</p>
+          <h1 id="title">로또 추첨기</h1>
+        </div>
+        <span class="serial" id="serial">DB SYNC PENDING</span>
       </header>
+
       <div class="content">
-        <p class="intro">1부터 45까지, 중복 없는 여섯 숫자를 골라보세요.</p>
+        <p class="intro">번호를 뽑으면 Supabase에 바로 저장되고, 최근 기록도 불러옵니다.</p>
+        <p class="status" id="status" aria-live="polite">저장된 기록을 불러오는 중이에요.</p>
+
         <div class="balls" id="balls" aria-live="polite"></div>
-        <button type="button" id="draw">행운 번호 뽑기 →</button>
-        <div class="history"><h2>최근 추첨 번호</h2><div id="history-list"><span class="history-item">아직 추첨 기록이 없어요.</span></div></div>
-        <p class="note">※ 재미로 즐기는 랜덤 추첨기입니다. 행운을 빌어요!</p>
+
+        <div class="actions">
+          <button type="button" id="draw">행운 번호 뽑기</button>
+          <p class="note">Vercel 환경변수로 연결된 Supabase 테이블에 저장됩니다.</p>
+        </div>
+
+        <section class="panel" aria-labelledby="history-title">
+          <h2 id="history-title">최근 저장 기록</h2>
+          <div class="history" id="history-list">
+            <span class="empty">아직 저장된 기록이 없어요.</span>
+          </div>
+        </section>
       </div>
     </section>
   </main>
+
   <script>
     const balls = document.querySelector('#balls');
     const drawButton = document.querySelector('#draw');
     const historyList = document.querySelector('#history-list');
+    const status = document.querySelector('#status');
     const serial = document.querySelector('#serial');
-    let count = 0, history = [];
-    const color = n => n <= 10 ? 'c1' : n <= 20 ? 'c2' : n <= 30 ? 'c3' : n <= 40 ? 'c4' : 'c5';
-    function pick() {
-      const pool = Array.from({length:45}, (_, i) => i + 1);
+
+    const range = 45;
+    function randomIndex(max) {
+      if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+        const value = new Uint32Array(1);
+        window.crypto.getRandomValues(value);
+        return value[0] % max;
+      }
+      return Math.floor(Math.random() * max);
+    }
+
+    function colorClass(number) {
+      if (number <= 10) return 'c1';
+      if (number <= 20) return 'c2';
+      if (number <= 30) return 'c3';
+      if (number <= 40) return 'c4';
+      return 'c5';
+    }
+
+    function formatNumber(number) {
+      return String(number).padStart(2, '0');
+    }
+
+    function generateDraw() {
+      const pool = Array.from({ length: range }, (_, index) => index + 1);
       const chosen = [];
-      while (chosen.length < 7) chosen.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-      return { numbers:chosen.slice(0,6).sort((a,b) => a-b), bonus:chosen[6] };
+
+      while (chosen.length < 7) {
+        chosen.push(pool.splice(randomIndex(pool.length), 1)[0]);
+      }
+
+      return {
+        numbers: chosen.slice(0, 6).sort((a, b) => a - b),
+        bonus: chosen[6]
+      };
     }
-    function render(result) {
+
+    function setStatus(message, state = '') {
+      status.textContent = message;
+      status.dataset.state = state;
+    }
+
+    function renderHistory(rows) {
+      if (!rows.length) {
+        historyList.innerHTML = '<span class="empty">아직 저장된 기록이 없어요.</span>';
+        return;
+      }
+
+      historyList.innerHTML = rows.map((row) => {
+        const result = row.result || {};
+        const numbers = Array.isArray(result.numbers) ? result.numbers : [];
+        const bonus = result.bonus;
+        const text = `${numbers.map(formatNumber).join(' · ')} + ${formatNumber(bonus)}`;
+        return `<span class="history-item">${text}</span>`;
+      }).join('');
+    }
+
+    function renderDraw(row) {
+      const result = row.result || row;
+      const numbers = Array.isArray(result.numbers) ? result.numbers : [];
+      const bonus = result.bonus;
+
       balls.innerHTML = '';
-      [...result.numbers, '＋', result.bonus].forEach((number, i) => {
-        const el = document.createElement('div');
-        if (number === '＋') { el.className = 'divider'; el.textContent = number; }
-        else { el.className = `ball ${color(number)}`; el.textContent = number; if (i === 7) el.setAttribute('aria-label', `보너스 번호 ${number}`); setTimeout(() => el.classList.add('show'), i * 90); }
-        balls.append(el);
+
+      numbers.forEach((number, index) => {
+        const ball = document.createElement('div');
+        ball.className = `ball ${colorClass(number)}`;
+        ball.textContent = number;
+        ball.setAttribute('aria-label', `당첨번호 ${number}`);
+        balls.appendChild(ball);
+
+        window.setTimeout(() => {
+          ball.classList.add('show');
+        }, index * 90);
       });
-      count++; serial.textContent = `DRAW #${String(count).padStart(6,'0')}`;
-      history.unshift(`${result.numbers.map(n=>String(n).padStart(2,'0')).join(' · ')} + ${String(result.bonus).padStart(2,'0')}`);
-      history = history.slice(0, 5);
-      historyList.innerHTML = history.map(item => `<span class="history-item">${item}</span>`).join('');
+
+      const divider = document.createElement('div');
+      divider.className = 'divider';
+      divider.textContent = '+';
+      balls.appendChild(divider);
+
+      const bonusBall = document.createElement('div');
+      bonusBall.className = `ball ${colorClass(bonus)}`;
+      bonusBall.textContent = bonus;
+      bonusBall.setAttribute('aria-label', `보너스 번호 ${bonus}`);
+      balls.appendChild(bonusBall);
+
+      window.setTimeout(() => {
+        bonusBall.classList.add('show');
+      }, numbers.length * 90);
+
+      const drawId = row.id ? `DRAW #${String(row.id).padStart(6, '0')}` : 'DRAW READY';
+      serial.textContent = drawId;
     }
-    drawButton.addEventListener('click', () => render(pick()));
-    render(pick());
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        },
+        ...options
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message = payload && payload.error ? payload.error : `요청 실패 (${response.status})`;
+        throw new Error(message);
+      }
+
+      return payload;
+    }
+
+    async function loadHistory() {
+      setStatus('저장된 기록을 불러오는 중이에요.');
+
+      try {
+        const rows = await requestJson('/api/draws?limit=5');
+        renderHistory(rows);
+
+        if (rows.length > 0) {
+          renderDraw(rows[0]);
+          const createdAt = rows[0].created_at ? new Date(rows[0].created_at) : null;
+          const timeText = createdAt && !Number.isNaN(createdAt.getTime())
+            ? createdAt.toLocaleString('ko-KR')
+            : '방금 전';
+          setStatus(`최근 저장 기록: ${timeText}`);
+        } else {
+          balls.innerHTML = '';
+          serial.textContent = 'DB SYNC READY';
+          setStatus('아직 저장된 기록이 없어요. 첫 번호를 뽑아보세요.');
+        }
+      } catch (error) {
+        renderHistory([]);
+        balls.innerHTML = '';
+        serial.textContent = 'DB OFFLINE';
+        setStatus(`기록을 불러오지 못했어요. ${error.message}`, 'error');
+      }
+    }
+
+    async function saveDraw() {
+      const generated = generateDraw();
+      drawButton.disabled = true;
+      setStatus('Supabase에 저장 중이에요.');
+
+      try {
+        const saved = await requestJson('/api/draws', {
+          method: 'POST',
+          body: JSON.stringify(generated)
+        });
+
+        renderDraw(saved);
+        await loadHistory();
+        setStatus('Supabase에 저장했어요.');
+      } catch (error) {
+        setStatus(`저장에 실패했어요. ${error.message}`, 'error');
+      } finally {
+        drawButton.disabled = false;
+      }
+    }
+
+    drawButton.addEventListener('click', saveDraw);
+
+    loadHistory();
   </script>
 </body>
 </html>
