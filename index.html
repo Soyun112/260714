@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>행운 추첨기</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono&family=Gowun+Dodum&display=swap');
+
+    :root { --ink:#15151a; --paper:#fbf7ed; --orange:#f04e23; --yellow:#f7c948; --blue:#3155c6; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; color:var(--ink); background:radial-gradient(circle at 18% 20%,#ffe5ad 0 4%,transparent 4.2%),radial-gradient(circle at 80% 75%,#c7d9ff 0 6%,transparent 6.2%),var(--paper); font-family:'Gowun Dodum',sans-serif; }
+    main { width:min(920px,calc(100% - 32px)); padding:42px 0; }
+    .ticket { overflow:hidden; position:relative; border:3px solid var(--ink); box-shadow:9px 9px 0 var(--ink); background:#fffdf8; }
+    .top { display:flex; justify-content:space-between; align-items:flex-start; padding:28px 32px 20px; border-bottom:3px dashed var(--ink); }
+    .eyebrow { margin:0 0 8px; color:var(--orange); font:700 13px 'DM Mono',monospace; letter-spacing:.12em; }
+    h1 { margin:0; font-size:clamp(31px,6vw,58px); line-height:1; letter-spacing:-.09em; }
+    .serial { padding:8px 10px; border:2px solid var(--ink); font:12px 'DM Mono',monospace; transform:rotate(3deg); }
+    .content { padding:28px 32px 32px; }
+    .intro { margin:0 0 25px; font-size:17px; }
+    .balls { display:flex; flex-wrap:wrap; gap:14px; min-height:74px; align-items:center; }
+    .ball { width:62px; height:62px; display:grid; place-items:center; border:2px solid var(--ink); border-radius:50%; font:700 24px 'DM Mono',monospace; box-shadow:3px 3px 0 var(--ink); opacity:0; transform:translateY(-14px) rotate(-12deg); transition:opacity .25s,transform .25s; }
+    .ball.show { opacity:1; transform:translateY(0) rotate(0); }
+    .c1 { background:#f6d34c; } .c2 { background:#7cc6e7; } .c3 { background:#ef7e62; } .c4 { background:#a998db; } .c5 { background:#87c875; }
+    .divider { margin:0 2px; font:30px 'DM Mono',monospace; }
+    .bonus-label { font-size:11px; font-weight:bold; text-align:center; margin-top:3px; }
+    button { cursor:pointer; margin-top:30px; padding:15px 22px; border:3px solid var(--ink); background:var(--orange); color:white; box-shadow:5px 5px 0 var(--ink); font:700 17px 'Gowun Dodum',sans-serif; transition:transform .1s,box-shadow .1s; }
+    button:hover { background:#d93d17; } button:active { transform:translate(4px,4px); box-shadow:1px 1px 0 var(--ink); }
+    .history { margin-top:26px; padding-top:21px; border-top:2px solid var(--ink); }
+    .history h2 { font-size:15px; margin:0 0 10px; }
+    #history-list { display:flex; flex-wrap:wrap; gap:8px; }
+    .history-item { padding:7px 9px; border:1px solid var(--ink); background:#fff; font:12px 'DM Mono',monospace; }
+    .note { margin:18px 0 0; color:#595954; font-size:12px; }
+    @media (max-width:560px) { .top,.content { padding-left:20px; padding-right:20px; } .serial{display:none}.ball{width:48px;height:48px;font-size:19px}.balls{gap:10px}.divider{font-size:23px} }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="ticket" aria-labelledby="title">
+      <header class="top">
+        <div><p class="eyebrow">LUCKY DRAW / 6 OUT OF 45</p><h1 id="title">오늘의 행운 번호</h1></div>
+        <span class="serial" id="serial">DRAW #000001</span>
+      </header>
+      <div class="content">
+        <p class="intro">1부터 45까지, 중복 없는 여섯 숫자를 골라보세요.</p>
+        <div class="balls" id="balls" aria-live="polite"></div>
+        <button type="button" id="draw">행운 번호 뽑기 →</button>
+        <div class="history"><h2>최근 추첨 번호</h2><div id="history-list"><span class="history-item">아직 추첨 기록이 없어요.</span></div></div>
+        <p class="note">※ 재미로 즐기는 랜덤 추첨기입니다. 행운을 빌어요!</p>
+      </div>
+    </section>
+  </main>
+  <script>
+    const balls = document.querySelector('#balls');
+    const drawButton = document.querySelector('#draw');
+    const historyList = document.querySelector('#history-list');
+    const serial = document.querySelector('#serial');
+    let count = 0, history = [];
+    const color = n => n <= 10 ? 'c1' : n <= 20 ? 'c2' : n <= 30 ? 'c3' : n <= 40 ? 'c4' : 'c5';
+    function pick() {
+      const pool = Array.from({length:45}, (_, i) => i + 1);
+      const chosen = [];
+      while (chosen.length < 7) chosen.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      return { numbers:chosen.slice(0,6).sort((a,b) => a-b), bonus:chosen[6] };
+    }
+    function render(result) {
+      balls.innerHTML = '';
+      [...result.numbers, '＋', result.bonus].forEach((number, i) => {
+        const el = document.createElement('div');
+        if (number === '＋') { el.className = 'divider'; el.textContent = number; }
+        else { el.className = `ball ${color(number)}`; el.textContent = number; if (i === 7) el.setAttribute('aria-label', `보너스 번호 ${number}`); setTimeout(() => el.classList.add('show'), i * 90); }
+        balls.append(el);
+      });
+      count++; serial.textContent = `DRAW #${String(count).padStart(6,'0')}`;
+      history.unshift(`${result.numbers.map(n=>String(n).padStart(2,'0')).join(' · ')} + ${String(result.bonus).padStart(2,'0')}`);
+      history = history.slice(0, 5);
+      historyList.innerHTML = history.map(item => `<span class="history-item">${item}</span>`).join('');
+    }
+    drawButton.addEventListener('click', () => render(pick()));
+    render(pick());
+  </script>
+</body>
+</html>
